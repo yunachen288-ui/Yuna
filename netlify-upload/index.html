@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GRE 词汇 · 背词计划</title>
+  <meta name="theme-color" content="#0d7a70">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-badge">GRE</span>
+          <div>
+            <h1>真经等价词</h1>
+            <p>5 天背词计划</p>
+          </div>
+        </div>
+        <div class="topbar-save" id="topbarSave">学习档案</div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="authView" class="view">
+        <div class="auth-panel question-panel">
+          <div class="brand brand-center">
+            <span class="brand-badge">GRE</span>
+            <div>
+              <h1>GRE 词汇背词计划</h1>
+              <p>注册或登录后开始学习</p>
+            </div>
+          </div>
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab is-active" id="authLoginTab">登录</button>
+            <button type="button" class="auth-tab" id="authRegisterTab">注册</button>
+          </div>
+          <form id="authForm">
+            <label for="authUsername">名字</label>
+            <input id="authUsername" name="username" autocomplete="username" maxlength="30" placeholder="取一个不重复的名字" required>
+            <label for="authPassword">密码</label>
+            <input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="至少 4 位" minlength="4" required>
+            <div id="authError" class="auth-error"></div>
+            <button id="authSubmit" class="btn btn-primary" type="submit">登录</button>
+            <button id="authOfflineBtn" class="btn btn-ghost" type="button">先本机模式试用</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="homeView" class="view">
+        <nav class="module-tabs" id="moduleTabs" aria-label="学习模块">
+          <button type="button" class="module-tab" data-module="sixTwo">六选二<span>5 天</span></button>
+          <button type="button" class="module-tab" data-module="math">数学词汇</button>
+          <button type="button" class="module-tab" data-module="w1400">1400 词<span>7 天</span></button>
+          <button type="button" class="module-tab" data-action="profile">个人档案</button>
+        </nav>
+        <div class="page-grid">
+          <div class="content-col">
+            <div class="section-head">
+              <h2 id="homeTitle">选择学习任务</h2>
+              <p id="homeSubtitle"></p>
+            </div>
+            <div id="dayList" class="day-list"></div>
+          </div>
+          <aside class="side-col">
+            <section class="panel">
+              <h3>学习档案</h3>
+              <dl id="profileStats" class="profile-stats"></dl>
+              <div class="panel-actions">
+                <button id="openWrongBtn" class="btn btn-secondary" type="button">查看错词本</button>
+                <button id="resetBtn" class="btn btn-ghost" type="button">清空档案</button>
+              </div>
+              <p class="save-note" id="saveNote">档案自动保存在本机浏览器中</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="practiceView" class="view is-hidden">
+        <div class="practice-head">
+          <button id="exitBtn" class="btn btn-ghost" type="button">退出</button>
+          <div class="progress-area">
+            <div class="progress-meta">
+              <span id="progressText"></span>
+              <span id="saveText"></span>
+            </div>
+            <div class="progress-track" role="progressbar" id="progressTrack">
+              <div id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <section class="question-panel">
+          <div class="question-top">
+            <span id="stageBadge" class="stage-badge"></span>
+            <span id="entryCounter"></span>
+          </div>
+          <div class="word-zone">
+            <span class="field-label">题干单词</span>
+            <h2 id="questionWord"></h2>
+          </div>
+          <div class="prompt" id="questionPrompt"></div>
+          <div id="optionList" class="option-list"></div>
+          <div id="feedbackBox" class="feedback is-hidden"></div>
+          <div class="next-row">
+            <button id="nextBtn" class="btn btn-primary is-hidden" type="button">下一词</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="summaryView" class="view is-hidden">
+        <section class="question-panel summary-panel">
+          <h2 id="summaryTitle"></h2>
+          <p id="summarySubtitle"></p>
+          <div id="summaryStats" class="summary-stats"></div>
+          <div id="summaryWrong" class="summary-wrong"></div>
+          <div class="summary-actions">
+            <button id="redoWrongBtn" class="btn btn-primary" type="button">重练错词</button>
+            <button id="backHomeBtn" class="btn btn-secondary" type="button">返回主页</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="wrongView" class="view is-hidden">
+        <section class="question-panel">
+          <div class="wrong-head">
+            <button id="wrongBackBtn" class="btn btn-ghost" type="button">返回</button>
+            <h2>错词本</h2>
+          </div>
+          <div id="wrongContent"></div>
+        </section>
+      </section>
+
+      <section id="profileView" class="view is-hidden">
+        <div class="profile-layout">
+          <div class="profile-head">
+            <button id="profileBackBtn" class="btn btn-ghost" type="button">返回</button>
+            <h2>个人档案</h2>
+          </div>
+          <div id="profileOverall" class="summary-stats"></div>
+          <section class="panel profile-panel">
+            <h3>我的账号</h3>
+            <div id="syncStatus"></div>
+            <div class="panel-actions">
+              <button id="logoutBtn" class="btn btn-secondary" type="button">退出登录</button>
+            </div>
+            <p class="save-note">手机和电脑登录同一个名字，即可同步同一份学习档案。</p>
+          </section>
+          <section class="panel profile-panel">
+            <h3>首次背词记录</h3>
+            <div id="firstRecords"></div>
+          </section>
+          <section class="panel profile-panel">
+            <h3>历次背词记录</h3>
+            <div id="sessionLog"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>
