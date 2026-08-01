@@ -4,13 +4,12 @@ import { getStore } from "@netlify/blobs";
 const STORE_NAME = "gre-words";
 
 function json(value, statusCode = 200) {
-  return {
-    statusCode,
+  return new Response(JSON.stringify(value), {
+    status: statusCode,
     headers: {
       "Content-Type": "application/json; charset=utf-8"
-    },
-    body: JSON.stringify(value)
-  };
+    }
+  });
 }
 
 async function readJson(key, fallback) {
@@ -26,24 +25,16 @@ async function writeJson(key, value) {
   await getStore(STORE_NAME).setJSON(key, value);
 }
 
-function routePath(event) {
+function routePath(requestUrl) {
   let pathname = "/";
   try {
-    pathname = new URL(event.rawUrl).pathname;
+    pathname = new URL(requestUrl).pathname;
   } catch (err) {
-    pathname = event.path || "/";
+    pathname = "/";
   }
   return pathname
     .replace(/^\/\.netlify\/functions\/api/, "")
     .replace(/^\/api/, "") || "/";
-}
-
-function parseBody(event) {
-  try {
-    return JSON.parse(event.body || "{}");
-  } catch (err) {
-    return {};
-  }
 }
 
 function hashPassword(password, salt) {
@@ -111,19 +102,28 @@ async function loginUser(username, password) {
   return { profile };
 }
 
-async function authUserId(event) {
-  const header = event.headers.authorization || "";
+async function authUserId(request) {
+  const header = request.headers.get("authorization") || "";
   if (!header.startsWith("Bearer ")) return null;
   const token = header.slice(7);
   const tokens = await readJson("tokens", {});
   return tokens[token] || null;
 }
 
-export async function handler(event) {
-  const path = routePath(event);
+export default async function handler(request) {
+  const method = request.method || "GET";
+  const path = routePath(request.url);
 
-  if (event.httpMethod === "POST" && path === "/register") {
-    const body = parseBody(event);
+  let body = {};
+  if (method === "POST" || method === "PUT") {
+    try {
+      body = await request.json();
+    } catch (err) {
+      body = {};
+    }
+  }
+
+  if (method === "POST" && path === "/register") {
     const username = String(body.username || "").trim();
     const password = String(body.password || "");
     if (!username || username.length > 30 || !password) {
@@ -136,8 +136,7 @@ export async function handler(event) {
     return json(publicProfile(result.profile));
   }
 
-  if (event.httpMethod === "POST" && path === "/login") {
-    const body = parseBody(event);
+  if (method === "POST" && path === "/login") {
     const username = String(body.username || "").trim();
     const password = String(body.password || "");
     const result = await loginUser(username, password);
@@ -150,19 +149,18 @@ export async function handler(event) {
     return json(publicProfile(result.profile));
   }
 
-  const userId = await authUserId(event);
+  const userId = await authUserId(request);
   if (!userId) {
     return json({ error: "unauthorized" }, 401);
   }
 
-  if (event.httpMethod === "GET" && path === "/profile") {
+  if (method === "GET" && path === "/profile") {
     const profile = await readJson("profile:" + userId, null);
     if (!profile) return json({ error: "profile not found" }, 404);
     return json(publicProfile(profile));
   }
 
-  if (event.httpMethod === "PUT" && path === "/profile") {
-    const body = parseBody(event);
+  if (method === "PUT" && path === "/profile") {
     const profile = await readJson("profile:" + userId, null);
     if (!profile) return json({ error: "profile not found" }, 404);
     profile.state = body.state || null;
