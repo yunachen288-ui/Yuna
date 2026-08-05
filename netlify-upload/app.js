@@ -358,6 +358,30 @@
     sync.online = false;
   }
 
+  function hasLocalData(value) {
+    var modules = value && value.modules ? value.modules : {};
+    return Object.keys(modules).some(function (moduleId) {
+      var module = modules[moduleId];
+      if (!module) return false;
+      if (module.progress && Object.keys(module.progress).length) return true;
+      if (module.wrong && Object.keys(module.wrong).length) return true;
+      if (
+        module["1"] &&
+        (Object.keys(module["1"].progress || {}).length ||
+          Object.keys(module["1"].wrong || {}).length)
+      ) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  function stateIsNewer(left, right) {
+    var leftTime = left.lastPractice || left.savedAt || "";
+    var rightTime = right.lastPractice || right.savedAt || "";
+    return leftTime > rightTime;
+  }
+
   function boot() {
     var stored = null;
     try {
@@ -373,8 +397,15 @@
       apiFetch("/api/profile").then(function (profile) {
         sync.online = true;
         if (profile && profile.state) {
-          state = normalizeServerState(profile.state);
-          saveLocalOnly();
+          var serverState = normalizeServerState(profile.state);
+          if (stateIsNewer(state, serverState)) {
+            pushSync();
+          } else {
+            state = serverState;
+            saveLocalOnly();
+          }
+        } else if (hasLocalData(state)) {
+          pushSync();
         }
         renderHome();
       }).catch(function (err) {
@@ -435,14 +466,20 @@
       sync.online = true;
       saveAuth();
       if (profile.state) {
-        state = normalizeServerState(profile.state);
+        var serverState = normalizeServerState(profile.state);
+        if (stateIsNewer(state, serverState)) {
+          pushSync();
+        } else {
+          state = serverState;
+          saveLocalOnly();
+        }
         try {
           localStorage.setItem("gre-account-migrated", "1");
         } catch (err) {
           // ignore storage errors
         }
       } else {
-        var localHasData = totalAnswered() > 0 || state.sessions.length > 0;
+        var localHasData = hasLocalData(state) || state.sessions.length > 0;
         var migrated = false;
         try {
           migrated = localStorage.getItem("gre-account-migrated") === "1";
