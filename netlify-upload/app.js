@@ -787,6 +787,11 @@
 
   function renderPractice() {
     showView("practiceView");
+    renderPracticeMeta();
+    renderQuestion();
+  }
+
+  function renderPracticeMeta() {
     var module = moduleById(session.moduleId);
     var done = dayDone(session.moduleId, session.day);
     var total = dayTotal(session.moduleId, session.day);
@@ -801,7 +806,6 @@
     document.getElementById("progressFill").style.width = percent + "%";
     document.getElementById("entryCounter").textContent =
       "第 " + (session.index + 1) + " / " + session.ids.length + " 词";
-    renderQuestion();
   }
 
   function renderQuestion() {
@@ -1062,6 +1066,7 @@
 
     finalizeEntry(entry);
     session.index += 1;
+    renderPracticeMeta();
     if (session.index >= session.ids.length) {
       finishSession();
     } else {
