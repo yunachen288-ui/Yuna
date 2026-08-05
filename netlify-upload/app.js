@@ -1024,19 +1024,14 @@
     }
     var body;
     if (!moduleHasEquiv(module) || session.stage === "meaning") {
-      var equivalentText = entry.equivalents && entry.equivalents.length
-        ? esc(entry.equivalents.join("、"))
-        : "（资料未提供等价词）";
-      body =
-        "正确释义：<strong>" +
-        esc(entry.meaning) +
-        "</strong><br>等价词：" +
-        equivalentText;
+      body = "正确释义：<strong>" + esc(entry.meaning) + "</strong>";
     } else {
       body =
         "正确等价词：<strong>" +
         esc(session.correct) +
-        "</strong><br>中文释义：" +
+        "</strong><br>完整等价词：" +
+        esc((entry.equivalents || []).join("、")) +
+        "<br>中文释义：" +
         esc(entry.meaning);
     }
     box.innerHTML =
